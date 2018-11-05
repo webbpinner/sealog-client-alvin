@@ -155,7 +155,7 @@ class Register extends Component {
             {this.renderForm()}
           </Col>
           <Col>
-            <Image className="form-signin" responsive src={`/images/Jason_silhouette.png`}/>
+            <Image className="form-signin" responsive src={`/images/Alvin_Profile.png`}/>
           </Col>
         </Row>
     )
