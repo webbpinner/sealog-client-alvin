@@ -24,7 +24,7 @@ class Tasks extends Component {
       description: "" 
     }
 
-    // this.handleFiles = this.handleFiles.bind(this);
+    this.deleteAllData = this.deleteAllData.bind(this);
   }
 
   handleEventImport() {
@@ -58,11 +58,17 @@ class Tasks extends Component {
   }
 
   handleDataWipe() {
-    this.props.showModal('dataWipe', { handleDelete: this.props.deleteAllEvents });
+    this.props.showModal('dataWipe', { handleDelete: this.deleteAllData });
   }
 
   handleUserImport() {
     this.props.showModal('importUsers');
+  }
+
+  deleteAllData() {
+    this.props.deleteAllEvents()
+    this.props.deleteAllLowerings()
+    this.props.deleteAllCruises()
   }
 
   componentWillMount() {

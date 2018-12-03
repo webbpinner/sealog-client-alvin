@@ -22,6 +22,12 @@ class UpdateCruise extends Component {
   }
 
   handleFormSubmit(formProps) {
+
+    if(!formProps.cruise_name) {
+       console.log("set cruise name blank")
+       formProps.cruise_name = ''
+    }
+
     formProps.cruise_participants = (formProps.cruise_participants)? formProps.cruise_participants.map(participant => participant.trim()): [];
     formProps.cruise_tags = (formProps.cruise_tags)? formProps.cruise_tags.map(tag => tag.trim()): [];
     this.props.updateCruise(formProps);
@@ -161,9 +167,8 @@ class UpdateCruise extends Component {
                 name="cruise_name"
                 type="text"
                 component={this.renderField}
-                label="Full Name"
+                label="Cruise Name"
                 placeholder="i.e. Lost City 2018"
-                required={true}
               />
               <Field
                 name="cruise_description"
@@ -248,10 +253,6 @@ function validate(formProps) {
     errors.cruise_id = 'Required'
   } else if (formProps.cruise_id.length > 15) {
     errors.cruise_id = 'Must be 15 characters or less'
-  }
-
-  if (!formProps.cruise_name) {
-    errors.cruise_name = 'Required'
   }
 
   if (!formProps.cruise_pi) {

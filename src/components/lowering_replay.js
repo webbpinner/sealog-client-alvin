@@ -268,8 +268,8 @@ class LoweringReplay extends Component {
 
   handleMissingImage(ev) {
     // console.log(ROOT_PATH)
-    // ev.target.src = `${ROOT_PATH}/images/noimage.jpeg`
-    ev.target.src = `/images/noimage.jpeg`
+    ev.target.src = `${ROOT_PATH}/images/noimage.jpeg`
+    // ev.target.src = `/images/noimage.jpeg`
   }
 
   handleLoweringReplayStart() {

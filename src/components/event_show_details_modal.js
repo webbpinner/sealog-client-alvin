@@ -12,7 +12,7 @@ import ImagePreviewModal from './image_preview_modal';
 
 import * as actions from '../actions';
 
-import { API_ROOT_URL, IMAGE_PATH } from '../url_config';
+import { API_ROOT_URL, IMAGE_PATH, ROOT_PATH } from '../url_config';
 
 const cookies = new Cookies();
 
@@ -53,7 +53,7 @@ class EventShowDetailsModal extends Component {
   }
 
   handleMissingImage(ev) {
-    ev.target.src = `/images/noimage.jpeg`
+    ev.target.src = `${ROOT_PATH}images/noimage.jpeg`
   }
 
   handleImageClick(source, filepath) {
