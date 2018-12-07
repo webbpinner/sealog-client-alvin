@@ -56,9 +56,9 @@ class LoweringSearch extends Component {
     this.props.advanceLoweringReplayTo(id);
   }
 
-  handleEventComment(id) {
-    this.props.advanceLoweringReplayTo(id);
-    this.props.showModal('eventComment', { id: id });
+  handleEventComment(event) {
+    this.props.advanceLoweringReplayTo(event.id);
+    this.props.showModal('eventComment', { event: event, handleUpdateEvent: this.props.updateEvent });
   }
 
   handleEventShowDetails(id) {
@@ -292,7 +292,7 @@ class LoweringSearch extends Component {
                 // onClick={() => this.handleEventClick(event.id)} active={active}
                 
                 return (
-                  <ListGroupItem key={event.id} active={active} ><span onClick={() => this.handleEventShowDetails(event.id)}>{`${event.ts} <${event.event_author}>: ${event.event_value} ${eventOptions}`}</span><span className="pull-right" onClick={() => this.handleEventComment(event.id)}><OverlayTrigger placement="top" overlay={commentTooltip}><FontAwesomeIcon icon='comment' fixedWidth/></OverlayTrigger></span></ListGroupItem>
+                  <ListGroupItem key={event.id} active={active} ><span onClick={() => this.handleEventShowDetails(event.id)}>{`${event.ts} <${event.event_author}>: ${event.event_value} ${eventOptions}`}</span><span className="pull-right" onClick={() => this.handleEventComment(event)}><OverlayTrigger placement="top" overlay={commentTooltip}><FontAwesomeIcon icon='comment' fixedWidth/></OverlayTrigger></span></ListGroupItem>
                 )
               }
             })

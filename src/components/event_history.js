@@ -24,11 +24,6 @@ class EventHistory extends Component {
 
     this.client = new Client(`${WS_ROOT_URL}`);
     this.connectToWS = this.connectToWS.bind(this);
-    // this.scrollToBottom = this.scrollToBottom.bind(this);
-    // this.handleHideEventHistory = this.handleHideEventHistory.bind(this);
-    // this.handleShowEventHistory = this.handleShowEventHistory.bind(this);
-    // this.handleShowEventHistoryFullscreen = this.handleShowEventHistoryFullscreen.bind(this);
-
   }
 
   componentWillMount() {
@@ -66,14 +61,21 @@ class EventHistory extends Component {
 
       // console.log(result)
 
-      const handler = (update, flags) => {
+      const updateHandler = (update, flags) => {
         // console.log(update)
         if(!(this.state.hideASNAP && update.event_value == "ASNAP")) {
           this.props.updateEventHistory(update)
         }
       }
 
-      this.client.subscribe('/ws/status/newEvents', handler);
+      const deleteHandler = (update, flags) => {
+        // console.log(update)
+        this.props.fetchEventHistory(!this.state.hideASNAP)
+      }
+
+      this.client.subscribe('/ws/status/newEvents', updateHandler);
+      this.client.subscribe('/ws/status/updateEvents', updateHandler);
+      this.client.subscribe('/ws/status/deleteEvents', deleteHandler);
 
     } catch(error) {
       console.log(error);
@@ -87,8 +89,8 @@ class EventHistory extends Component {
     this.props.showModal('eventShowDetails', { id: id });
   }
 
-  handleEventComment(id) {
-    this.props.showModal('eventComment', { id: id, handleUpdateEventComment: this.props.updateEventComment, handleHide: this.props.fetchEventHistory });
+  handleEventComment(event) {
+    this.props.showModal('eventComment', { event: event, handleUpdateEvent: this.props.updateEvent });
   }
 
   renderEventHistoryHeader() {
@@ -175,9 +177,10 @@ class EventHistory extends Component {
 
       let eventArray = []
 
-      for (let i = this.props.history.length; i > 0; i--) {
+      // for (let i = this.props.history.length; i > 0; i--) {
+      for (let i = 0; i < this.props.history.length; i++) {
 
-        let event = this.props.history[i-1]
+        let event = this.props.history[i]
         let commentTooltip = (<Tooltip id={`commentTooltip_${event.id}`}>Add Comment</Tooltip>)
 
         // if(this.state.hideASNAP && event.event_value == "ASNAP") {
@@ -197,7 +200,7 @@ class EventHistory extends Component {
 
         let eventOptions = (eventOptionsArray.length > 0)? '--> ' + eventOptionsArray.join(', '): ''
 
-        eventArray.push(<ListGroupItem key={event.id}><span onClick={() => this.handleEventShowDetails(event.id)}>{event.ts} {`<${event.event_author}>`}: {event.event_value} {eventOptions}</span><span className="pull-right" onClick={() => this.handleEventComment(event.id)}><OverlayTrigger placement="top" overlay={commentTooltip}><FontAwesomeIcon icon='comment' fixedWidth/></OverlayTrigger></span></ListGroupItem>);
+        eventArray.push(<ListGroupItem key={event.id}><span onClick={() => this.handleEventShowDetails(event.id)}>{event.ts} {`<${event.event_author}>`}: {event.event_value} {eventOptions}</span><span className="pull-right" onClick={() => this.handleEventComment(event)}><OverlayTrigger placement="top" overlay={commentTooltip}><FontAwesomeIcon icon='comment' fixedWidth/></OverlayTrigger></span></ListGroupItem>);
       }
       return eventArray
     }

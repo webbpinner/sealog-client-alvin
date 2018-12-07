@@ -190,7 +190,6 @@ class LoweringReplay extends Component {
   }
 
   exportEventsWithAuxDataToJSON() {
-
     this.fetchEventsWithAuxData().then((results) => {
       let prefix = moment.utc(this.props.event.events[0].ts).format(dateFormat + "_" + timeFormat)
       fileDownload(JSON.stringify(results, null, 2), `${prefix}.sealog_export.json`);
@@ -200,7 +199,6 @@ class LoweringReplay extends Component {
   }
 
   exportEventsToJSON() {
-
     this.fetchEvents().then((results) => {
       let prefix = moment.utc(this.props.event.events[0].ts).format(dateFormat + "_" + timeFormat)
       fileDownload(JSON.stringify(results, null, 2), `${prefix}.sealog_eventExport.json`);
@@ -210,7 +208,6 @@ class LoweringReplay extends Component {
   }
 
   exportAuxDataToJSON() {
-
     this.fetchEventAuxData().then((results) => {
       let prefix = moment.utc(this.props.event.events[0].ts).format(dateFormat + "_" + timeFormat)
       fileDownload(JSON.stringify(results, null, 2), `${prefix}.sealog_auxDataExport.json`);
@@ -244,15 +241,13 @@ class LoweringReplay extends Component {
   }
 
   handleEventComment(index) {
-    console.log("comment:", index)
     this.handleLoweringReplayPause();
     this.setState({replayEventIndex: index})
     this.props.advanceLoweringReplayTo(this.props.event.events[index].id)
-    this.props.showModal('eventComment', { id: this.props.event.events[index].id });
+    this.props.showModal('eventComment', { event: this.props.event.events[index], handleUpdateEvent: this.props.updateEvent });
   }
 
   handlePageSelect(eventKey) {
-    // console.log("eventKey:", eventKey)
     this.handleLoweringReplayPause();
     this.setState({activePage: eventKey, replayEventIndex: (eventKey-1)*7 });
     this.props.advanceLoweringReplayTo(this.props.event.events[(eventKey-1)*7].id)
@@ -268,7 +263,7 @@ class LoweringReplay extends Component {
 
   handleMissingImage(ev) {
     // console.log(ROOT_PATH)
-    ev.target.src = `${ROOT_PATH}/images/noimage.jpeg`
+    ev.target.src = `${ROOT_PATH}images/noimage.jpeg`
     // ev.target.src = `/images/noimage.jpeg`
   }
 
