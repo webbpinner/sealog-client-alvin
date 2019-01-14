@@ -7,7 +7,7 @@ import Cookies from 'universal-cookie';
 import { Link } from 'react-router-dom';
 import { LinkContainer } from 'react-router-bootstrap';
 import { connect } from 'react-redux';
-import { Button, Grid, Row, Col, Panel, Accordion, Pagination, ListGroup, ListGroupItem, MenuItem, Thumbnail, Well, OverlayTrigger, Tooltip, ButtonToolbar, DropdownButton } from 'react-bootstrap';
+import { Button, Row, Col, Panel, Accordion, Pagination, ListGroup, ListGroupItem, MenuItem, Thumbnail, Well, OverlayTrigger, Tooltip, ButtonToolbar, DropdownButton } from 'react-bootstrap';
 import 'rc-slider/assets/index.css';
 import Slider, { createSliderWithTooltip } from 'rc-slider';
 import { Line } from 'rc-progress';
@@ -34,6 +34,8 @@ const PAUSE = 1
 const FFWD = 2
 const FREV = 3
 
+const maxEventsPerPage = 8;
+
 // const SliderWithTooltip = createSliderWithTooltip(Slider);
 
 class LoweringReplay extends Component {
@@ -55,6 +57,8 @@ class LoweringReplay extends Component {
     this.handlePageSelect = this.handlePageSelect.bind(this);
     this.replayAdvance = this.replayAdvance.bind(this);
     this.replayReverse = this.replayReverse.bind(this);
+    this.updateEventFilter = this.updateEventFilter.bind(this)
+
   }
 
   componentWillMount() {
@@ -71,6 +75,13 @@ class LoweringReplay extends Component {
     if(this.state.replayTimer) {
       clearInterval(this.state.replayTimer);
     }
+  }
+
+  updateEventFilter(filter = {}) {
+    this.setState({ activePage: 1, replayEventIndex: 0 });
+    this.handleLoweringReplayPause();
+    this.props.updateEventFilterForm(filter);
+    this.props.eventUpdateLoweringReplay(this.props.match.params.id, this.state.hideASNAP)
   }
 
   toggleASNAP() {
@@ -190,6 +201,7 @@ class LoweringReplay extends Component {
   }
 
   exportEventsWithAuxDataToJSON() {
+
     this.fetchEventsWithAuxData().then((results) => {
       let prefix = moment.utc(this.props.event.events[0].ts).format(dateFormat + "_" + timeFormat)
       fileDownload(JSON.stringify(results, null, 2), `${prefix}.sealog_export.json`);
@@ -199,6 +211,7 @@ class LoweringReplay extends Component {
   }
 
   exportEventsToJSON() {
+
     this.fetchEvents().then((results) => {
       let prefix = moment.utc(this.props.event.events[0].ts).format(dateFormat + "_" + timeFormat)
       fileDownload(JSON.stringify(results, null, 2), `${prefix}.sealog_eventExport.json`);
@@ -208,6 +221,7 @@ class LoweringReplay extends Component {
   }
 
   exportAuxDataToJSON() {
+
     this.fetchEventAuxData().then((results) => {
       let prefix = moment.utc(this.props.event.events[0].ts).format(dateFormat + "_" + timeFormat)
       fileDownload(JSON.stringify(results, null, 2), `${prefix}.sealog_auxDataExport.json`);
@@ -225,14 +239,14 @@ class LoweringReplay extends Component {
     this.handleLoweringReplayPause();
     this.setState({replayEventIndex: index})
     this.props.advanceLoweringReplayTo(this.props.event.events[index].id)
-    this.setState({activePage: Math.ceil((index+1)/7)})
+    this.setState({activePage: Math.ceil((index+1)/maxEventsPerPage)})
   }
 
   handleEventClick(index) {
     this.handleLoweringReplayPause();
     this.setState({replayEventIndex: index})
     this.props.advanceLoweringReplayTo(this.props.event.events[index].id)
-    this.setState({activePage: Math.ceil((index+1)/7)})
+    this.setState({activePage: Math.ceil((index+1)/maxEventsPerPage)})
   }
 
   handleImageClick(source, filepath) {
@@ -240,7 +254,7 @@ class LoweringReplay extends Component {
     this.props.showModal('imagePreview', { name: source, filepath: filepath })
   }
 
-  handleEventComment(index) {
+  handleEventCommentModal(index) {
     this.handleLoweringReplayPause();
     this.setState({replayEventIndex: index})
     this.props.advanceLoweringReplayTo(this.props.event.events[index].id)
@@ -248,9 +262,10 @@ class LoweringReplay extends Component {
   }
 
   handlePageSelect(eventKey) {
+    // console.log("eventKey:", eventKey)
     this.handleLoweringReplayPause();
-    this.setState({activePage: eventKey, replayEventIndex: (eventKey-1)*7 });
-    this.props.advanceLoweringReplayTo(this.props.event.events[(eventKey-1)*7].id)
+    this.setState({activePage: eventKey, replayEventIndex: (eventKey-1)*maxEventsPerPage });
+    this.props.advanceLoweringReplayTo(this.props.event.events[(eventKey-1)*maxEventsPerPage].id)
   }
 
   renderImage(source, filepath) {
@@ -262,23 +277,21 @@ class LoweringReplay extends Component {
   }
 
   handleMissingImage(ev) {
-    // console.log(ROOT_PATH)
     ev.target.src = `${ROOT_PATH}images/noimage.jpeg`
-    // ev.target.src = `/images/noimage.jpeg`
   }
 
   handleLoweringReplayStart() {
     this.handleLoweringReplayPause();
     this.setState({replayEventIndex: 0})
     this.props.advanceLoweringReplayTo(this.props.event.events[this.state.replayEventIndex].id)
-    this.setState({activePage: Math.ceil((this.state.replayEventIndex+1)/7)})
+    this.setState({activePage: Math.ceil((this.state.replayEventIndex+1)/maxEventsPerPage)})
   }
 
   handleLoweringReplayEnd() {
     this.handleLoweringReplayPause();
     this.setState({replayEventIndex: this.props.event.events.length-1})
     this.props.advanceLoweringReplayTo(this.props.event.events[this.state.replayEventIndex].id)
-    this.setState({activePage: Math.ceil((this.state.replayEventIndex+1)/7)})
+    this.setState({activePage: Math.ceil((this.state.replayEventIndex+1)/maxEventsPerPage)})
   }
 
   handleLoweringReplayFRev() {
@@ -318,17 +331,17 @@ class LoweringReplay extends Component {
     if(this.state.replayEventIndex < (this.props.event.events.length - 1)) {
       this.setState({replayEventIndex: this.state.replayEventIndex + 1})
       this.props.advanceLoweringReplayTo(this.props.event.events[this.state.replayEventIndex].id)
-      this.setState({activePage: Math.ceil((this.state.replayEventIndex+1)/7)})
+      this.setState({activePage: Math.ceil((this.state.replayEventIndex+1)/maxEventsPerPage)})
     } else {
       this.setState({replayState: PAUSE})
     }
   }
 
   replayReverse() {
-    if(this.state.replayEventIndex > 1) {
+    if(this.state.replayEventIndex > 0) {
       this.setState({replayEventIndex: this.state.replayEventIndex - 1})
       this.props.advanceLoweringReplayTo(this.props.event.events[this.state.replayEventIndex].id)
-      this.setState({activePage: Math.ceil((this.state.replayEventIndex+1)/7)})
+      this.setState({activePage: Math.ceil((this.state.replayEventIndex+1)/maxEventsPerPage)})
     } else {
       this.setState({replayState: PAUSE})
     }
@@ -351,7 +364,7 @@ class LoweringReplay extends Component {
             {
               tmpData.map((camera) => {
                 return (
-                  <Col key={camera.source} xs={12} sm={6} md={4} lg={4}>
+                  <Col key={camera.source} xs={6} sm={3} md={3} lg={3}>
                     {this.renderImage(camera.source, camera.filepath)}
                   </Col>
                 )
@@ -374,7 +387,7 @@ class LoweringReplay extends Component {
               {
                 tmpData.map((camera) => {
                   return (
-                    <Col key={camera.source} xs={12} sm={6} md={4} lg={4}>
+                    <Col key={camera.source} xs={6} sm={3} md={3} lg={3}>
                       {this.renderImage(camera.source, camera.filepath)}
                     </Col>
                   )
@@ -535,6 +548,30 @@ class LoweringReplay extends Component {
     );
   }
 
+  renderAuxDataPanel() {
+
+    let return_aux_data = []
+    if(this.props.event && this.props.event.selected_event.aux_data) {
+      return this.props.event.selected_event.aux_data.map((aux_data, index) => {
+        let return_data = aux_data.data_array.map((data, index) => {
+          return (<div key={`${aux_data.data_source}_data_point_${index}`}><label>{data.data_name}:</label><span> {data.data_value} {data.data_uom}</span></div>)
+        })
+        return (
+          <Col key={`${aux_data.data_source}`} xs={12} md={6}>
+            <Panel>
+              <label>{aux_data.data_source}:</label>
+              <ul>
+                {return_data}
+                </ul>
+            </Panel>
+          </Col>
+        )
+      })
+    }  
+
+    return null
+  }
+
   renderControlsPanel() {
 
     if(this.props.lowering) {
@@ -627,80 +664,77 @@ class LoweringReplay extends Component {
 
   renderEventPanel() {
 
-    if(this.props.event.fetching) {
+    if (!this.props.event.events) {
       return (
         <Panel>
           <Panel.Heading>{ this.renderEventListHeader() }</Panel.Heading>
-          <ListGroup>
-            <ListGroupItem>Loading...</ListGroupItem>
-          </ListGroup>
-        </Panel>
-      )
-    } else if(this.props.event && this.props.event.events.length > 0) {
-
-      let eventList = (this.state.hideASNAP)? this.props.event.events.filter(event => (event.event_value != "ASNAP")) : this.props.event.events
-
-      if(eventList.length == 0){
-        return (
-          <Panel>
-            <Panel.Heading>{ this.renderEventListHeader() }</Panel.Heading>
-            <ListGroup>
-              <ListGroupItem>No events found!</ListGroupItem>
-            </ListGroup>
-          </Panel>
-        )
-      }
-
-      // console.log(this.props.event.selected_event)
-
-      return (          
-        <Panel>
-          <Panel.Heading>{ this.renderEventListHeader() }</Panel.Heading>
-          <ListGroup>
-            {
-              eventList.map((event, index) => {
-                if(index >= (this.state.activePage-1) * 7 && index < (this.state.activePage * 7)) {
-                  let eventOptionsArray = [];
-                  event.event_options.map((option) => {
-                    if (option.event_option_name != 'event_comment') {
-                      eventOptionsArray.push(option.event_option_name.replace(/\s+/g, "_") + ": \"" + option.event_option_value + "\"");
-                    }
-                  })
-                  
-                  if (event.event_free_text) {
-                    eventOptionsArray.push("text: \"" + event.event_free_text + "\"")
-                  } 
-
-                  let eventOptions = (eventOptionsArray.length > 0)? '--> ' + eventOptionsArray.join(', '): ''
-                  let commentTooltip = (<Tooltip id={`commentTooltip_${event.id}`}>Edit/View Comment</Tooltip>)
-                  let eventDetailsTooltip = (<Tooltip id={`commentTooltip_${event.id}`}>View Event Details</Tooltip>)
-                  let active = (this.props.event.selected_event.id == event.id)? true : false
-                  // onClick={() => this.handleEventClick(event.id)} active={active}
-                  
-                  return (
-                  //<ListGroupItem key={event.id} active={active} ><span onClick={() => this.handleEventShowDetails(event.id)}>{`${event.ts} <${event.event_author}>: ${event.event_value} ${eventOptions}`}</span><span className="pull-right" onClick={() => this.handleEventComment(event.id)}><OverlayTrigger placement="top" overlay={commentTooltip}><FontAwesomeIcon icon='comment' fixedWidth/></OverlayTrigger></span></ListGroupItem>
-                    <ListGroupItem key={event.id} active={active} ><span onClick={() => this.handleEventClick(index)} >{`${event.ts} <${event.event_author}>: ${event.event_value} ${eventOptions}`}</span><span className="pull-right" onClick={() => this.handleEventComment(index)}><OverlayTrigger placement="top" overlay={commentTooltip}><FontAwesomeIcon icon='comment' fixedWidth/></OverlayTrigger></span></ListGroupItem>
-                  )
-                }
-              })
-            }
-          </ListGroup>
-        </Panel>
-      );
-    } else {
-      return (
-        <Panel>
-          <Panel.Heading>{ this.renderEventListHeader() }</Panel.Heading>
-          <Panel.Body>No events found!</Panel.Body>
+          <Panel.Body>Loading...</Panel.Body>
         </Panel>
       )
     }
+
+    return (
+      <Panel>
+        <Panel.Heading>{ this.renderEventListHeader() }</Panel.Heading>
+        <ListGroup>
+          {this.renderEvents()}
+        </ListGroup>
+      </Panel>
+    );
+  }
+
+  renderEvents() {
+
+    if(this.props.event.events && this.props.event.events.length > 0){
+
+      let eventArray = []
+
+      for (let i = (this.state.activePage-1) * maxEventsPerPage; i < this.state.activePage * maxEventsPerPage; i++) {
+
+        if(i >= this.props.event.events.length)
+          break
+
+        let event = this.props.event.events[i]
+        
+        let comment_exists = false;
+
+        let eventOptionsArray = event.event_options.reduce((filtered, option) => {
+          if(option.event_option_name == 'event_comment') {
+            comment_exists = (option.event_option_value !== '')? true : false;
+          // } else if(edu_event && option.event_option_name == 'seatube_permalink') {
+          //   seatube_exists = (option.event_option_value !== '')? true : false;
+          //   seatube_permalink = option.event_option_value;
+          // } else if(edu_event && option.event_option_name == 'youtube_material') {
+          //   youtube_material = (option.event_option_value == 'Yes')? true : false;
+          } else {
+            filtered.push(`${option.event_option_name}: \"${option.event_option_value}\"`);
+          }
+          return filtered
+        },[])
+        
+        if (event.event_free_text) {
+          eventOptionsArray.push(`free_text: \"${event.event_free_text}\"`)
+        } 
+
+        let active = (this.props.event.selected_event.id == event.id)? true : false
+
+        let eventOptions = (eventOptionsArray.length > 0)? '--> ' + eventOptionsArray.join(', '): ''
+        let commentIcon = (comment_exists)? <FontAwesomeIcon onClick={() => this.handleEventCommentModal(i)} icon='comment' fixedWidth transform="grow-4"/> : <span onClick={() => this.handleEventCommentModal(i)} className="fa-layers fa-fw"><FontAwesomeIcon icon='comment' fixedWidth transform="grow-4"/><FontAwesomeIcon icon='plus' fixedWidth inverse transform="shrink-4"/></span>
+        let commentTooltip = (comment_exists)? (<OverlayTrigger placement="top" overlay={<Tooltip id={`commentTooltip_${event.id}`}>Edit/View Comment</Tooltip>}>{commentIcon}</OverlayTrigger>) : (<OverlayTrigger placement="top" overlay={<Tooltip id={`commentTooltip_${event.id}`}>Add Comment</Tooltip>}>{commentIcon}</OverlayTrigger>)
+
+        // eventArray.push(<ListGroupItem key={event.id}><Row><Col xs={11} onClick={() => this.handleEventShowDetailsModal(event)}>{event.ts} {`<${event.event_author}>`}: {event.event_value} {eventOptions}</Col><Col>{deleteTooltip} {commentTooltip} {seatubeTooltip} {youtubeTooltip} </Col></Row></ListGroupItem>);
+        eventArray.push(<ListGroupItem key={event.id} active={active} ><Row><Col xs={11} ><span onClick={() => this.handleEventClick(i)} >{`${event.ts} <${event.event_author}>: ${event.event_value} ${eventOptions}`}</span></Col><Col>{commentTooltip}</Col></Row></ListGroupItem>);
+
+      }
+      return eventArray
+    }
+
+    return (<ListGroupItem>No events found</ListGroupItem>)
   }
 
   renderPagination() {
-    const maxEventsPerPage = 7
 
-    if(!this.props.event.fetching && this.props.event.events.length > 0) {
+    if(!this.props.event.fetching && this.props.event.events.length > maxEventsPerPage) {
       let eventCount = this.props.event.events.length
       let last = Math.ceil(eventCount/maxEventsPerPage);
       let delta = 2
@@ -740,23 +774,23 @@ class LoweringReplay extends Component {
     }
   }
 
-  renderPopoutMapButton() {
-    return (
-      <Link to="#" onClick={ () => this.openMapWindow() }><Button disabled={this.props.event.fetching}>Open Map Window</Button></Link>
-    )  
-  }
+  // renderPopoutMapButton() {
+  //   return (
+  //     <Link to="#" onClick={ () => this.openMapWindow() }><Button disabled={this.props.event.fetching}>Open Map Window</Button></Link>
+  //   )  
+  // }
 
-  openMapWindow() {
+  // openMapWindow() {
 
-    let url = `${ROOT_PATH}/replay_map/${this.props.lowering.id}`
-    let strWindowFeatures = "menubar=no,toolbar=no,location=no,width=640,height=780,resizable=yes,scrollbars=yes,status=yes";
-    let win = window.open(url, '_blank', strWindowFeatures);
-    win.focus();
-  }
+  //   let url = `${ROOT_PATH}/replay_map/${this.props.lowering.id}`
+  //   let strWindowFeatures = "menubar=no,toolbar=no,location=no,width=640,height=780,resizable=yes,scrollbars=yes,status=yes";
+  //   let win = window.open(url, '_blank', strWindowFeatures);
+  //   win.focus();
+  // }
 
   render(){
     return (
-      <Grid fluid>
+      <div>
         <ImagePreviewModal />
         <EventCommentModal />
         <Row>
@@ -765,7 +799,7 @@ class LoweringReplay extends Component {
               <Well bsSize="small">
                 {`Lowerings / ${this.props.lowering.lowering_id} / Replay`}{' '}
                 <span className="pull-right">
-                  <LinkContainer to={ `/lowering_search/${this.props.match.params.id}` }><Button disabled={this.props.event.fetching} bsSize={'xs'}>Goto Search</Button></LinkContainer>
+                  <LinkContainer to={ `/lowering_review/${this.props.match.params.id}` }><Button disabled={this.props.event.fetching} bsSize={'xs'}>Goto Review</Button></LinkContainer>
                 </span>
               </Well>
             </div>
@@ -799,13 +833,14 @@ class LoweringReplay extends Component {
             {this.renderPagination()}
           </Col>          
           <Col md={3} lg={3}>
-            <EventFilterForm disabled={this.props.event.fetching} hideASNAP={this.state.hideASNAP} handlePostSubmit={ () => { this.handleLoweringReplayPause();this.setState({ activePage: 1, replayEventIndex: 0 }) } } lowering_id={this.props.lowering.id}/>
+            <EventFilterForm disabled={this.props.event.fetching} hideASNAP={this.state.hideASNAP} handlePostSubmit={ this.updateEventFilter } minDate={this.props.lowering.start_ts} maxDate={this.props.lowering.stop_ts}/>
           </Col>          
         </Row>
-      </Grid>
+      </div>
     )
   }
 }
+
 
         // <Row>
           // <Col lg={12}>

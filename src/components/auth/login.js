@@ -46,9 +46,17 @@ render() {
     const { handleSubmit, pristine, reset, submitting } = this.props;
     const loginPanelHeader = (<h4 className="form-signin-heading">Please Sign In</h4>);
 
-    const quickLogin = ([
-      <Button key={"login-guest"} bsStyle="success" onClick={() => this.props.switch2Guest()} block>Login as Guest</Button>,
-    ]);
+    // const quickLogin = (
+    //   <Panel header={loginPanelHeader}>
+    //     <Button bsStyle="primary" onClick={() => this.props.switch2Pilot()} block>Pilot</Button>
+    //     <Button bsStyle="primary" onClick={() => this.props.switch2StbdObs()} block>Starboard Observer</Button>
+    //     <Button bsStyle="primary" onClick={() => this.props.switch2PortObs()} block>Port Observer</Button>
+    //     <br/>
+    //     <div className="text-right">
+    //       <Link to={'#'} onClick={ () => this.setState({stdUsers: false})}>Use Custom Login{' '}{<FontAwesome name="arrow-right"/>}</Link>
+    //     </div>
+    //   </Panel>
+    // )
 
     // const customLogin = (
     //   <Panel header={loginPanelHeader}>
@@ -88,7 +96,7 @@ render() {
 
     return (
       <Row>
-        <Col>
+        <Col sm={5} md={3} mdOffset={2} lg={2} lgOffset={3}>
           <Panel className="form-signin">
             <Panel.Body>
               {loginPanelHeader}
@@ -117,11 +125,11 @@ render() {
                 </div>
               </form>
               <br/>
+              <Button bsStyle="success" onClick={() => this.props.switch2Guest()} block>Login as Guest</Button>
+              <br/>
               <div className="text-right">
                 <Link to={ `/register` }>Register New User {<FontAwesomeIcon icon="arrow-right" />}</Link>
               </div>
-              <br/>
-              {quickLogin}
             </Panel.Body>
           </Panel>
         </Col>

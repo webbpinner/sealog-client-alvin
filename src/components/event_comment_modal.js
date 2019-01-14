@@ -40,6 +40,7 @@ class EventCommentModal extends Component {
   }
 
   handleFormSubmit({event_comment = ''}) {
+
     let existing_comment = false;
     let event_options = this.props.event.event_options = this.props.event.event_options.map(event_option => {
       if(event_option.event_option_name == 'event_comment') {

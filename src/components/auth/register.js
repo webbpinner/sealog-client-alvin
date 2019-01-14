@@ -4,7 +4,6 @@ import { reduxForm, Field } from 'redux-form';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Link } from 'react-router-dom';
 import { Row, Col, FormGroup, Panel, Button, Image } from 'react-bootstrap';
-import { ROOT_PATH } from '../../url_config';
 import * as actions from '../../actions';
 
 class Register extends Component {
@@ -156,7 +155,7 @@ class Register extends Component {
             {this.renderForm()}
           </Col>
           <Col>
-            <Image className="form-signin" responsive src={`${ROOT_PATH}images/Alvin_Profile.png`}/>
+            <Image className="form-signin" responsive src={`/images/Jason_silhouette.png`}/>
           </Col>
         </Row>
     )

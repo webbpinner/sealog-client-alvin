@@ -1,17 +1,13 @@
 import moment from 'moment';
 import Datetime from 'react-datetime';
-import axios from 'axios';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { reduxForm, Field, initialize, reset } from 'redux-form';
 import { Alert, Button, Checkbox, Radio, Col, FormGroup, FormControl, FormGroupItem, Grid, Panel, Row, Tooltip, OverlayTrigger } from 'react-bootstrap';
-import Cookies from 'universal-cookie';
-import { API_ROOT_URL } from '../url_config'
 import * as actions from '../actions';
 
 const dateFormat = "YYYY-MM-DD"
 const timeFormat = "HH:mm"
-const cookies = new Cookies();
 
 class CreateLowering extends Component {
 
@@ -19,30 +15,7 @@ class CreateLowering extends Component {
     this.props.leaveCreateLoweringForm();
   }
 
-  async getServerTime() {
-    try {
-      const result = await axios.get(`${API_ROOT_URL}/server_time`,
-      {
-        headers: {
-          authorization: cookies.get('token'),
-          'content-type': 'application/json'
-        }
-      })
-
-      return new Date(result.data.ts)
-
-    } catch(err) {
-      console.log(err)
-      return null
-    }
-  }
-
-  async handleFormSubmit(formProps) {
-    // formProps.start_ts = await this.getServerTime();
-    // formProps.stop_ts = await this.getServerTime();
-    // formProps.stop_ts.setDate(formProps.stop_ts.getDate() + 1)
-
-    // console.log(formProps)
+  handleFormSubmit(formProps) {
     formProps.lowering_observers = (formProps.lowering_observers)? formProps.lowering_observers.map(tag => tag.trim()): [];
     formProps.lowering_tags = (formProps.lowering_tags)? formProps.lowering_tags.map(tag => tag.trim()): [];
     this.props.createLowering(formProps);
@@ -75,7 +48,6 @@ class CreateLowering extends Component {
 
   renderDatePicker({ input, label, type, required, meta: { touched, error, warning } }) {
     let requiredField = (required)? <span className='text-danger'> *</span> : ''
-
     return (
       <FormGroup>
         <label>{label}{requiredField}</label>
@@ -199,28 +171,27 @@ class CreateLowering extends Component {
                   name="start_ts"
                   component={this.renderDatePicker}
                   type="text"
-                  label="Start Time"
+                  label="Start Date/Time (UTC)"
                   required={true}
                 />
                 <Field
                   name="stop_ts"
                   component={this.renderDatePicker}
                   type="text"
-                  label="Stop Time"
+                  label="Stop Date/Time (UTC)"
                   required={true}
                 />
                 <Field
                   name="lowering_pilot"
-                  component={this.renderField}
                   type="text"
+                  component={this.renderField}
                   label="Pilot"
                   placeholder="i.e. Bruce Strickrott"
-                  required={true}
-                  />
+                />
                 <Field
                   name="lowering_observers"
-                  component={this.renderField}
                   type="text"
+                  component={this.renderField}
                   label="Observers (comma delimited)"
                   placeholder="i.e. Adam Soule,Masako Tominaga"
                 />
@@ -228,7 +199,7 @@ class CreateLowering extends Component {
                   name="lowering_tags"
                   component={this.renderTextArea}
                   type="textarea"
-                  label="Lowering Tags (comma delimited)"
+                  label="Lowering Tags, comma delimited"
                   placeholder="A comma-delimited list of tags, i.e. coral,chemistry,engineering"
                 />
                 {this.renderAlert()}
@@ -242,9 +213,7 @@ class CreateLowering extends Component {
           </Panel>
         )
       } else {
-        return (
-          <div>No lowering record found.  Please login as "alvin" and create one.</div>
-        )
+        return null
       }
     } else {
       return (
@@ -265,6 +234,10 @@ function validate(formProps) {
     errors.lowering_id = 'Must be 15 characters or less'
   }
 
+  if (!formProps.lowering_name) {
+    errors.lowering_name = 'Required'
+  }
+
   if (!formProps.start_ts) {
     errors.start_ts = 'Required'
   }
@@ -274,13 +247,9 @@ function validate(formProps) {
   }
 
   if ((formProps.start_ts != '') && (formProps.stop_ts != '')) {
-    if(moment(formProps.stop_ts, dateFormat).isBefore(moment(formProps.start_ts, dateFormat))) {
-      errors.stop_ts = 'Stop date must be later than start data'
+    if(moment(formProps.stop_ts, dateFormat + " " + timeFormat).isBefore(moment(formProps.start_ts, dateFormat + " " + timeFormat))) {
+      errors.stop_ts = 'Stop date/time must be later than start date/time'
     }
-  }
-
-  if (!formProps.lowering_pilot) {
-    errors.lowering_pilot = 'Required'
   }
 
   if (typeof formProps.lowering_observers == "string") {

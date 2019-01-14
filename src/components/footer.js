@@ -61,6 +61,7 @@ class Footer extends Component {
       <Row>
         <hr/>
         <Col xs={12}>
+          {asnapStatus}
           <span className="pull-right">
             <a href={`/github`} target="_blank">Sealog</a> is licensed under the <a href={`/license`} target="_blank">GPLv3</a> public license
           </span>
@@ -72,7 +73,10 @@ class Footer extends Component {
 
 function mapStateToProps(state){
 
+  let asnapStatus = (state.custom_var)? state.custom_var.custom_vars.filter(custom_var => custom_var.custom_var_name == "asnapStatus") : []
+
   return {
+    asnapStatus: (asnapStatus.length > 0)? asnapStatus[0].custom_var_value : "Unknown",
     authenticated: state.auth.authenticated,
 
   }

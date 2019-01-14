@@ -1,19 +1,42 @@
+import axios from 'axios';
 import moment from 'moment';
 import Datetime from 'react-datetime';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { Component } from 'react';
+import Cookies from 'universal-cookie';
+import PropTypes from 'prop-types';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { connect } from 'react-redux';
-import { reduxForm, Field, initialize } from 'redux-form';
-import { Alert, Button, Checkbox, Col, FormGroup, FormControl, FormGroupItem, Grid, Panel, Row, Tooltip, OverlayTrigger} from 'react-bootstrap';
+import { reduxForm, Field, initialize, reset } from 'redux-form';
+import { Alert, Button, Checkbox, Col, FormGroup, FormControl, FormGroupItem, Panel, Row, Tooltip, OverlayTrigger} from 'react-bootstrap';
+import FileDownload from 'js-file-download';
+
+import { FilePond, File, registerPlugin } from 'react-filepond';
+import 'filepond/dist/filepond.min.css';
+
+import { API_ROOT_URL } from '../url_config';
 import * as actions from '../actions';
 
 const dateFormat = "YYYY-MM-DD"
 const timeFormat = "HH:mm"
 
+const LOWERING_ROUTE = "/files/lowerings";
+
+const cookies = new Cookies();
+
 class UpdateLowering extends Component {
 
+  constructor (props) {
+    super(props);
+
+    this.handleFileDownload = this.handleFileDownload.bind(this);
+    this.handleFileDelete = this.handleFileDelete.bind(this);
+  }
+
+  static propTypes = {
+    handleFormSubmit: PropTypes.func.isRequired
+  };
+
   componentWillMount() {
-    // console.log(this.props);
     if(this.props.loweringID) {
       this.props.initLowering(this.props.loweringID);
     }
@@ -23,16 +46,42 @@ class UpdateLowering extends Component {
     this.props.leaveUpdateLoweringForm();
   }
 
+  handleFormSubmit(formProps) {
+    formProps.lowering_tags = (formProps.lowering_tags)? formProps.lowering_tags.map(tag => tag.trim()): [];
 
-  handleLoweringDelete(id) {
-    console.log("delete lowering", id)
-    this.props.showModal('deleteLowering', { id: id, handleDelete: this.props.deleteLowering });
+    this.props.updateLowering({...formProps, lowering_files: this.pond.getFiles().map(file => file.serverId)});
+    this.pond.removeFiles();
+    this.props.handleFormSubmit()
   }
 
-  handleFormSubmit(formProps) {
-    formProps.lowering_observers = (formProps.lowering_observers)? formProps.lowering_observers.map(tag => tag.trim()): [];
-    formProps.lowering_tags = (formProps.lowering_tags)? formProps.lowering_tags.map(tag => tag.trim()): [];
-    this.props.updateLowering(formProps);
+  handleFileDownload(loweringID, filename) {
+    axios.get(`${API_ROOT_URL}${LOWERING_ROUTE}/${loweringID}/${filename}`,
+    {
+      headers: {
+        authorization: cookies.get('token')
+      }
+    })
+    .then((response) => {
+        FileDownload(response.data, filename);
+     })
+    .catch((error)=>{
+      console.log("JWT is invalid, logging out");
+    });
+  }
+
+  handleFileDelete(loweringID, filename) {
+    axios.delete(`${API_ROOT_URL}${LOWERING_ROUTE}/${loweringID}/${filename}`,
+    {
+      headers: {
+        authorization: cookies.get('token')
+      }
+    })
+    .then((response) => {
+        this.props.initLowering(loweringID)
+     })
+    .catch((error)=>{
+      console.log("JWT is invalid, logging out");
+    });
   }
 
   renderField({ input, label, placeholder, required, type, meta: { touched, error, warning } }) {
@@ -51,6 +100,7 @@ class UpdateLowering extends Component {
   renderTextArea({ input, label, type, placeholder, required, rows = 4, meta: { touched, error, warning } }) {
     let requiredField = (required)? <span className='text-danger'> *</span> : ''
     let placeholder_txt = (placeholder)? placeholder: label
+
     return (
       <FormGroup>
         <label>{label}{requiredField}</label>
@@ -125,6 +175,16 @@ class UpdateLowering extends Component {
     );
   }
 
+  renderFiles() {
+    if(this.props.lowering.lowering_files && this.props.lowering.lowering_files.length > 0) {
+      let files = this.props.lowering.lowering_files.map((file, index) => {
+        return <li style={{ listStyleType: "none" }} key={`file_${index}`}><span onClick={() => this.handleFileDownload(this.props.lowering.id, file)}><FontAwesomeIcon className='text-primary' icon='download' fixedWidth /></span> <span onClick={() => this.handleFileDelete(this.props.lowering.id, file)}><FontAwesomeIcon className='text-danger' icon='trash' fixedWidth /></span><span> {file}</span></li>
+      })
+      return <div>{files}<br/></div>
+    }
+    return null
+  }
+
   renderAlert() {
     if (this.props.errorMessage) {
       return (
@@ -147,22 +207,10 @@ class UpdateLowering extends Component {
 
   render() {
 
-    const deleteTooltip = (<Tooltip id="deleteTooltip">Delete this lowering.</Tooltip>)
-
     const { handleSubmit, pristine, reset, submitting, valid } = this.props;
-
-
+    const updateLoweringFormHeader = (<div>Update Lowering</div>);
 
     if (this.props.roles && (this.props.roles.includes("admin") || this.props.roles.includes('cruise_manager'))) {
-
-      const updateLoweringFormHeader = (this.props.roles.includes("admin"))? (
-        <div>
-          Update Lowering
-          <div className="pull-right">
-            <OverlayTrigger placement="top" overlay={deleteTooltip}><Button bsStyle="default" bsSize="xs" type="button" onClick={ () => this.handleLoweringDelete(this.props.initialValues.id)  } ><FontAwesomeIcon icon='trash' fixedWidth/></Button></OverlayTrigger>
-          </div>
-        </div>
-      ) : (<div>Update Lowering</div>);
 
       return (
         <Panel>
@@ -196,38 +244,44 @@ class UpdateLowering extends Component {
                 name="start_ts"
                 component={this.renderDatePicker}
                 type="text"
-                label="Start Time"
+                label="Start Date/Time (UTC)"
                 required={true}
               />
               <Field
                 name="stop_ts"
                 component={this.renderDatePicker}
                 type="text"
-                label="Stop Time"
+                label="Stop Date/Time (UTC)"
                 required={true}
-              />
-              <Field
-                name="lowering_pilot"
-                component={this.renderField}
-                type="text"
-                label="Pilot"
-                placeholder="i.e. Bruce Strickrott"
-                required={true}
-              />
-              <Field
-                name="lowering_observers"
-                component={this.renderField}
-                type="text"
-                label="Observers (comma delimited)"
-                placeholder="i.e. Adam Soule,Masako Tominaga"
               />
               <Field
                 name="lowering_tags"
                 component={this.renderTextArea}
                 type="textarea"
-                label="Lowering Tags (comma delimited)"
+                label="Lowering Tags, comma delimited"
                 placeholder="A comma-delimited list of tags, i.e. coral,chemistry,engineering"
               />
+              <label>Lowering Files</label>
+              {this.renderFiles()}
+              <FilePond ref={ref => this.pond = ref} allowMultiple={true} 
+                maxFiles={5} 
+                server={{
+                  url: API_ROOT_URL,
+                  process: {
+                    url: LOWERING_ROUTE + '/filepond/process/' + this.props.lowering.id,
+                    headers: { authorization: cookies.get('token') },
+                  },
+                  load: {
+                    url: LOWERING_ROUTE + '/filepond/load',
+                    headers: { authorization: cookies.get('token') },
+                  },
+                  revert: {
+                    url: LOWERING_ROUTE + '/filepond/revert',
+                    headers: { authorization: cookies.get('token') },
+                  }
+                }}
+              >
+              </FilePond>
               {this.renderAlert()}
               {this.renderMessage()}
               <div className="pull-right">
@@ -248,6 +302,11 @@ class UpdateLowering extends Component {
   }
 }
 
+
+            // {this.renderAdminOptions()}
+
+
+
 function validate(formProps) {
 
   const errors = {};
@@ -258,29 +317,13 @@ function validate(formProps) {
     errors.lowering_id = 'Must be 15 characters or less'
   }
 
-if (!formProps.start_ts) {
-    errors.start_ts = 'Required'
-  }
-
-  if (!formProps.stop_ts) {
-    errors.stop_ts = 'Required'
+  if (!formProps.lowering_name) {
+    errors.lowering_name = 'Required'
   }
 
   if ((formProps.start_ts != '') && (formProps.stop_ts != '')) {
-    if(moment(formProps.stop_ts, dateFormat).isBefore(moment(formProps.start_ts, dateFormat))) {
+    if(moment(formProps.stop_ts, dateFormat + " " + timeFormat).isBefore(moment(formProps.start_ts, dateFormat + " " + timeFormat))) {
       errors.stop_ts = 'Stop date must be later than start data'
-    }
-  }
-
-  if (!formProps.lowering_pilot) {
-    errors.lowering_pilot = 'Required'
-  }
-
-  if (typeof formProps.lowering_observers == "string") {
-    if (formProps.lowering_observers == '') {
-      formProps.lowering_observers = []
-    } else {
-      formProps.lowering_observers = formProps.lowering_observers.split(',');
     }
   }
 
@@ -302,9 +345,9 @@ function mapStateToProps(state) {
     errorMessage: state.lowering.lowering_error,
     message: state.lowering.lowering_message,
     initialValues: state.lowering.lowering,
-    roles: state.user.profile.roles,
+    lowering: state.lowering.lowering,
+    roles: state.user.profile.roles
   };
-
 }
 
 UpdateLowering = reduxForm({
