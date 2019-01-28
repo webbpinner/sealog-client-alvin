@@ -3,13 +3,13 @@
 ### Prerequisites
 
 <<<<<<< HEAD
- - [sealog-server](https://github.com/webbpinner/sealog-server-alvin)
+ - [sealog-server-alvin](https://github.com/webbpinner/sealog-server-alvin)
  - [nodeJS](https://nodejs.org)
  - [npm](https://www.npmjs.com)
  - [git](https://git-scm.com)
  
 #### Installing NodeJS/npm on Ubuntu 16.04LTS
-The standard Ubuntu repositories for Ubuntu 16.04 only provide install packages for NodeJS v4.  Sealog-client-alvin-topside (and Sealog-Server-Alvin) require nodeJS >= v8.7
+The standard Ubuntu repositories for Ubuntu 16.04 only provide install packages for NodeJS v4.  Sealog-client-alvin (and Sealog-Server-Alvin) require nodeJS >= v8.7
  
 To install nodeJS v8.11 on Ubuntu 16.04LTS run the following commands:
  ```
@@ -33,12 +33,12 @@ This should clone the repo to a directory called `sealog-client-alvin-topside`
 
 ```
 cd ~/sealog-client-alvin-topside
-cp ./src/url_config.js.dist ./src/url_config.js
+cp ./src/client_config.js.dist ./src/client_config.js
 ```
 
 ### Modify the configuration file
 
-Set the `API_ROOT_URL`, `WS_ROOT_URL`, `ROOT_PATH` and `IMAGES_PATH` values in the `./sealog-client/src/url_config.js` file to meet your specific installation requirements.
+Set the `API_ROOT_URL`, `WS_ROOT_URL`, `ROOT_PATH`, and `IMAGES_PATH` values in the `./sealog-client/src/client_config.js` file to meet your specific installation requirements.
 
 By default the file assumes the sealog-server is available on ports 8000/8001 on the same server that is hosting the sealog-server.  The default configuration file also assumes the client will be available from the root of the webserver.  If you want the webclient available at: `http://<serverIP>/sealog` you need to set `ROOT_PATH` to `/sealog/` (notice there is a starting `/` **AND** trailing `/`).
 
@@ -64,7 +64,7 @@ npm install
 From a terminal run:
 
 ```
-cd ./sealog-client-alvin-topside
+cd ~/sealog-client-alvin-topside
 npm run build
 ```
 
@@ -93,6 +93,6 @@ Optionally you can run the client using node's development web-server.  This rem
 
 To run the client using development mode run the following commands in terminal:
 ```
-cd <path_to>/sealog-client
+cd /home/sealog/sealog-client-alvin-topside
 npm start
 ```

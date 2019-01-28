@@ -13,7 +13,7 @@ import FileDownload from 'js-file-download';
 import { FilePond, File, registerPlugin } from 'react-filepond';
 import 'filepond/dist/filepond.min.css';
 
-import { API_ROOT_URL } from '../url_config';
+import { API_ROOT_URL } from '../client_config';
 import * as actions from '../actions';
 
 const dateFormat = "YYYY-MM-DD"
@@ -48,6 +48,7 @@ class UpdateLowering extends Component {
 
   handleFormSubmit(formProps) {
     formProps.lowering_tags = (formProps.lowering_tags)? formProps.lowering_tags.map(tag => tag.trim()): [];
+    formProps.lowering_observers = (formProps.lowering_observers)? formProps.lowering_observers.map(observer => observer.trim()): [];
 
     this.props.updateLowering({...formProps, lowering_files: this.pond.getFiles().map(file => file.serverId)});
     this.pond.removeFiles();
@@ -213,7 +214,7 @@ class UpdateLowering extends Component {
     if (this.props.roles && (this.props.roles.includes("admin") || this.props.roles.includes('cruise_manager'))) {
 
       return (
-        <Panel>
+        <Panel className="form-standard">
           <Panel.Heading>{updateLoweringFormHeader}</Panel.Heading>
           <Panel.Body>
             <form onSubmit={ handleSubmit(this.handleFormSubmit.bind(this)) }>
@@ -239,6 +240,20 @@ class UpdateLowering extends Component {
                 component={this.renderField}
                 label="Lowering Location"
                 placeholder="i.e. Kelvin Seamount"
+              />
+              <Field
+                name="lowering_pilot"
+                component={this.renderField}
+                type="text"
+                label="Lowering Pilot"
+                placeholder="i.e. Bruce Strickrott"
+              />
+              <Field
+                name="lowering_Observers"
+                component={this.renderField}
+                type="text"
+                label="Lowering Observers, comma delimited"
+                placeholder="i.e. Adam Soule, Masako Tominaga"
               />
               <Field
                 name="start_ts"
@@ -324,6 +339,14 @@ function validate(formProps) {
   if ((formProps.start_ts != '') && (formProps.stop_ts != '')) {
     if(moment(formProps.stop_ts, dateFormat + " " + timeFormat).isBefore(moment(formProps.start_ts, dateFormat + " " + timeFormat))) {
       errors.stop_ts = 'Stop date must be later than start data'
+    }
+  }
+
+  if (typeof formProps.lowering_observers == "string") {
+    if (formProps.lowering_observers == '') {
+      formProps.lowering_observers = []
+    } else {
+      formProps.lowering_observers = formProps.lowering_observers.split(',');
     }
   }
 

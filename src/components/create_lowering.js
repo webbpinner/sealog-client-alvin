@@ -16,8 +16,8 @@ class CreateLowering extends Component {
   }
 
   handleFormSubmit(formProps) {
-    formProps.lowering_observers = (formProps.lowering_observers)? formProps.lowering_observers.map(tag => tag.trim()): [];
     formProps.lowering_tags = (formProps.lowering_tags)? formProps.lowering_tags.map(tag => tag.trim()): [];
+    formProps.lowering_observers = (formProps.lowering_observers)? formProps.lowering_observers.map(observer => observer.trim()): [];
     this.props.createLowering(formProps);
   }
 
@@ -140,7 +140,7 @@ class CreateLowering extends Component {
       if(this.props.roles.includes("admin")) {
 
         return (
-          <Panel>
+          <Panel className="form-standard">
             <Panel.Heading>{createLoweringFormHeader}</Panel.Heading>
             <Panel.Body>
               <form onSubmit={ handleSubmit(this.handleFormSubmit.bind(this)) }>
@@ -168,6 +168,20 @@ class CreateLowering extends Component {
                   placeholder="i.e. Kelvin Seamount"
                 />
                 <Field
+                  name="lowering_pilot"
+                  component={this.renderField}
+                  type="text"
+                  label="Lowering Pilot"
+                  placeholder="i.e. Bruce Strickrott"
+                />
+                <Field
+                  name="lowering_Observers"
+                  component={this.renderField}
+                  type="text"
+                  label="Lowering Observers, comma delimited"
+                  placeholder="i.e. Adam Soule, Masako Tominaga"
+                />
+                <Field
                   name="start_ts"
                   component={this.renderDatePicker}
                   type="text"
@@ -180,20 +194,6 @@ class CreateLowering extends Component {
                   type="text"
                   label="Stop Date/Time (UTC)"
                   required={true}
-                />
-                <Field
-                  name="lowering_pilot"
-                  type="text"
-                  component={this.renderField}
-                  label="Pilot"
-                  placeholder="i.e. Bruce Strickrott"
-                />
-                <Field
-                  name="lowering_observers"
-                  type="text"
-                  component={this.renderField}
-                  label="Observers (comma delimited)"
-                  placeholder="i.e. Adam Soule,Masako Tominaga"
                 />
                 <Field
                   name="lowering_tags"
@@ -252,19 +252,19 @@ function validate(formProps) {
     }
   }
 
-  if (typeof formProps.lowering_observers == "string") {
-    if (formProps.lowering_observers == '') {
-      formProps.lowering_observers = []
-    } else {
-      formProps.lowering_observers = formProps.lowering_observers.split(',');
-    }
-  }
-
   if (typeof formProps.lowering_tags == "string") {
     if (formProps.lowering_tags == '') {
       formProps.lowering_tags = []
     } else {
       formProps.lowering_tags = formProps.lowering_tags.split(',');
+    }
+  }
+
+  if (typeof formProps.lowering_observers == "string") {
+    if (formProps.lowering_observers == '') {
+      formProps.lowering_observers = []
+    } else {
+      formProps.lowering_observers = formProps.lowering_observers.split(',');
     }
   }
 

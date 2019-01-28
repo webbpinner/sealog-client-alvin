@@ -2,9 +2,9 @@ import React, {Component} from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Navbar, Nav, NavDropdown, NavItem, MenuItem, Image, Row } from 'react-bootstrap';
+import { Navbar, Nav, NavDropdown, NavItem, MenuItem, Image } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
-import { ROOT_PATH } from '../url_config';
+import { ROOT_PATH } from '../client_config';
 import * as actions from '../actions';
 
 class Header extends Component {
@@ -21,10 +21,10 @@ class Header extends Component {
 
   handleASNAPToggle() {
     if(this.props.asnapStatus) {
-      if(this.props.asnapStatus[0].custom_var_value == 'Off') {
-        this.props.updateCustomVars(this.props.asnapStatus[0].id, {custom_var_value: 'On'})
+      if(this.props.asnapStatus.custom_var_value == 'Off') {
+        this.props.updateCustomVars(this.props.asnapStatus.id, {custom_var_value: 'On'})
       } else {
-        this.props.updateCustomVars(this.props.asnapStatus[0].id, {custom_var_value: 'Off'})
+        this.props.updateCustomVars(this.props.asnapStatus.id, {custom_var_value: 'Off'})
       }
     }
   }
@@ -108,20 +108,21 @@ class Header extends Component {
   }
 
   renderSystemManagerDropdown() {
-    if(this.props.roles && (this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager') || this.props.roles.includes('event_manager'))) {
+    // if(this.props.roles && (this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager') || this.props.roles.includes('event_manager'))) {
+    if(this.props.roles && (this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager'))) {
       return (
         <NavDropdown eventKey={3} title={'System Management'} id="basic-nav-dropdown">
           {this.renderCruiseOptions()}
           {this.renderEventManagementOptions()}
-          {this.renderEventTemplateOptions()}
           {this.renderLoweringOptions()}
           {this.renderTaskOptions()}
           {this.renderUserOptions()}
-          {this.renderToggleASNAP()}
         </NavDropdown>
       );
     }
   }
+          // {this.renderEventTemplateOptions()}
+          // {this.renderToggleASNAP()}
 
   renderUserDropdown() {
     if(this.props.authenticated){
@@ -159,35 +160,33 @@ class Header extends Component {
 
   render () {
     return (
-      <Row>
       <Navbar fluid collapseOnSelect>
         <Navbar.Header>
           <Navbar.Brand>
-            <Link to={ `/` }>Sealog <Image responsive src={`${ROOT_PATH}images/Alvin_Front_brand.png`}/> ALVIN Topside Edition</Link>
+            <Link to={ `/` }>Sealog - ALVIN Topside</Link>
           </Navbar.Brand>
           <Navbar.Toggle />
         </Navbar.Header>
         <Navbar.Collapse>
           <Nav pullRight>
-            {this.renderEventLoggingOptions()}
             {this.renderSystemManagerDropdown()}
             {this.renderUserDropdown()}
           </Nav>
         </Navbar.Collapse>
       </Navbar>
-      </Row>
     );
   }
 }
+            // {this.renderEventLoggingOptions()}
 
 function mapStateToProps(state){
-  let asnapStatus = (state.custom_var)? state.custom_var.custom_vars.filter(custom_var => custom_var.custom_var_name == "asnapStatus") : []
+  let asnapStatus = (state.custom_var)? state.custom_var.custom_vars.find(custom_var => custom_var.custom_var_name == "asnapStatus") : null
 
   return {
     authenticated: state.auth.authenticated,
     fullname: state.user.profile.fullname,
     roles: state.user.profile.roles,
-    asnapStatus: (asnapStatus.length > 0)? asnapStatus : null,
+    asnapStatus: (state.custom_var)? state.custom_var.custom_vars.find(custom_var => custom_var.custom_var_name == "asnapStatus") : null
   };
 }
 
