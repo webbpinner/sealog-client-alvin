@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Navbar, Nav, NavDropdown, NavItem, MenuItem, Image } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
-import { ROOT_PATH } from '../client_config';
+import { ROOT_PATH, HEADER_TITLE } from '../client_config';
 import * as actions from '../actions';
 
 class Header extends Component {
@@ -108,8 +108,7 @@ class Header extends Component {
   }
 
   renderSystemManagerDropdown() {
-    // if(this.props.roles && (this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager') || this.props.roles.includes('event_manager'))) {
-    if(this.props.roles && (this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager'))) {
+    if(this.props.roles && (this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager') || this.props.roles.includes('event_manager'))) {
       return (
         <NavDropdown eventKey={3} title={'System Management'} id="basic-nav-dropdown">
           {this.renderCruiseOptions()}
@@ -163,12 +162,13 @@ class Header extends Component {
       <Navbar fluid collapseOnSelect>
         <Navbar.Header>
           <Navbar.Brand>
-            <Link to={ `/` }>Sealog - ALVIN Topside</Link>
+            <Link to={ `/` }>{HEADER_TITLE}</Link>
           </Navbar.Brand>
           <Navbar.Toggle />
         </Navbar.Header>
         <Navbar.Collapse>
           <Nav pullRight>
+            {this.renderEventLoggingOptions()}
             {this.renderSystemManagerDropdown()}
             {this.renderUserDropdown()}
           </Nav>
@@ -177,16 +177,15 @@ class Header extends Component {
     );
   }
 }
-            // {this.renderEventLoggingOptions()}
 
 function mapStateToProps(state){
-  let asnapStatus = (state.custom_var)? state.custom_var.custom_vars.find(custom_var => custom_var.custom_var_name == "asnapStatus") : null
+  // let asnapStatus = (state.custom_var)? state.custom_var.custom_vars.find(custom_var => custom_var.custom_var_name == "asnapStatus") : null
 
   return {
     authenticated: state.auth.authenticated,
     fullname: state.user.profile.fullname,
     roles: state.user.profile.roles,
-    asnapStatus: (state.custom_var)? state.custom_var.custom_vars.find(custom_var => custom_var.custom_var_name == "asnapStatus") : null
+    // asnapStatus: (state.custom_var)? state.custom_var.custom_vars.find(custom_var => custom_var.custom_var_name == "asnapStatus") : null
   };
 }
 

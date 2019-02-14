@@ -6,7 +6,7 @@ import { push } from 'connected-react-router';
 import { bindActionCreators } from 'redux';
 import { show, destroy } from 'redux-modal';
 import {change, untouch} from 'redux-form';
-import { API_ROOT_URL} from '../client_config';
+import { API_ROOT_URL } from '../client_config';
 
 import {
   AUTH_USER,
@@ -183,10 +183,10 @@ export function initEventTemplate(id) {
   }
 }
 
-export function login({username, password, reCaptcha}) {
+export function login({username, password}) {
 
   return function (dispatch) {
-    axios.post(`${API_ROOT_URL}/api/v1/login`, {username, password, reCaptcha})
+    axios.post(`${API_ROOT_URL}/api/v1/login`, {username, password})
     .then(response => {
 
       // If request is good save the JWT token to a cookie
@@ -360,10 +360,10 @@ export function deleteEvent(event_id) {
   }
 }
 
-export function forgotPassword({email, reCaptcha}) {
+export function forgotPassword({ email }) {
 
   return function (dispatch) {
-    axios.post(`${API_ROOT_URL}/api/v1/forgotPassword`, {email, reCaptcha})
+    axios.post(`${API_ROOT_URL}/api/v1/forgotPassword`, { email })
     .then(response => {
 
       console.log(response.data.message)
@@ -379,9 +379,9 @@ export function forgotPassword({email, reCaptcha}) {
   }
 }
 
-export function resetPassword({ token, password, reCaptcha}) {
+export function resetPassword({ token, password }) {
   return function (dispatch) {
-    axios.patch(`${API_ROOT_URL}/api/v1/resetPassword`, { token, password, reCaptcha})
+    axios.patch(`${API_ROOT_URL}/api/v1/resetPassword`, { token, password })
     .then((response) => {
 
       //console.log("New user successfully created");
@@ -402,9 +402,9 @@ export function resetPassword({ token, password, reCaptcha}) {
   }
 }
 
-export function registerUser({username, fullname, password, email, reCaptcha}) {
+export function registerUser({username, fullname, password, email }) {
   return function (dispatch) {
-    axios.post(`${API_ROOT_URL}/api/v1/register`, {username, fullname, password, email, reCaptcha})
+    axios.post(`${API_ROOT_URL}/api/v1/register`, {username, fullname, password, email})
     .then((response) => {
 
       //console.log("New user successfully created");
@@ -447,12 +447,10 @@ export function createUser({username, fullname, password = '', email, roles, sys
   }
 }
 
-// export function createCruise({cruise_id, cruise_name, start_ts, stop_ts, cruise_description = '', cruise_location = '', cruise_pi, cruise_participants = [], cruise_tags = [], cruise_hidden = false, cruise_access_list = []}) {
-export function createCruise({cruise_id, cruise_name, start_ts, stop_ts, cruise_description = '', cruise_location = '', cruise_pi, cruise_participants = [], cruise_tags = [], cruise_hidden = false}) {
+export function createCruise({cruise_id, start_ts, stop_ts, cruise_location = '', cruise_pi, cruise_tags = [], cruise_hidden = false, cruise_access_list = [], cruise_additional_meta = {} }) {
   return function (dispatch) {
     axios.post(`${API_ROOT_URL}/api/v1/cruises`,
-    // {cruise_id, cruise_name, start_ts, stop_ts, cruise_description, cruise_location, cruise_pi, cruise_participants, cruise_tags, cruise_hidden, cruise_access_list},
-    {cruise_id, cruise_name, start_ts, stop_ts, cruise_description, cruise_location, cruise_pi, cruise_participants, cruise_tags, cruise_hidden},
+    {cruise_id, start_ts, stop_ts, cruise_location, cruise_pi, cruise_tags, cruise_hidden, cruise_access_list, cruise_additional_meta},
     {
       headers: {
         authorization: cookies.get('token'),
@@ -471,12 +469,10 @@ export function createCruise({cruise_id, cruise_name, start_ts, stop_ts, cruise_
   }
 }
 
-// export function createLowering({lowering_id, lowering_name, start_ts, stop_ts, lowering_pilot = '', lowering_observers = [], lowering_description = '', lowering_location = '', lowering_tags = [], lowering_hidden = false, lowering_access_list = []}) {
-export function createLowering({lowering_id, lowering_name, start_ts, stop_ts, lowering_pilot = '', lowering_observers = [], lowering_description = '', lowering_location = '', lowering_tags = [], lowering_hidden = false}) {
+export function createLowering({lowering_id, start_ts, stop_ts, lowering_location = '', lowering_tags = [], lowering_hidden = false, lowering_access_list = [], lowering_additional_meta = {} }) {
   return function (dispatch) {
     axios.post(`${API_ROOT_URL}/api/v1/lowerings`,
-    // {lowering_id, lowering_name, start_ts, stop_ts, lowering_pilot, lowering_observers, lowering_description, lowering_location, lowering_tags, lowering_hidden, lowering_access_list},
-    {lowering_id, lowering_name, start_ts, stop_ts, lowering_pilot, lowering_observers, lowering_description, lowering_location, lowering_tags, lowering_hidden},
+    {lowering_id, start_ts, stop_ts, lowering_location, lowering_tags, lowering_hidden, lowering_access_list, lowering_additional_meta},
     {
       headers: {
         authorization: cookies.get('token'),
@@ -639,24 +635,12 @@ export function updateCruise(formProps) {
     fields.cruise_id = formProps.cruise_id;
   }
 
-  if(formProps.cruise_name) {
-    fields.cruise_name = formProps.cruise_name;
-  }
-
-  if(formProps.cruise_description) {
-    fields.cruise_description = formProps.cruise_description;
-  }
-
   if(formProps.cruise_location) {
     fields.cruise_location = formProps.cruise_location;
   }
 
   if(formProps.cruise_pi) {
     fields.cruise_pi = formProps.cruise_pi;
-  }
-
-  if(formProps.cruise_participants) {
-    fields.cruise_participants = formProps.cruise_participants;
   }
 
   if(formProps.cruise_tags) {
@@ -675,13 +659,13 @@ export function updateCruise(formProps) {
     fields.cruise_hidden = formProps.cruise_hidden;
   }
 
-  if(formProps.cruise_files) {
-    fields.cruise_files = formProps.cruise_files;
+  if(formProps.cruise_access_list) {
+    fields.cruise_access_list = formProps.cruise_access_list;
   }
 
-  // if(formProps.cruise_access_list) {
-  //   fields.cruise_access_list = formProps.cruise_access_list;
-  // }
+  if(formProps.cruise_additional_meta) {
+    fields.cruise_additional_meta = formProps.cruise_additional_meta;
+  }
 
   return async function (dispatch) {
     await axios.patch(`${API_ROOT_URL}/api/v1/cruises/${formProps.id}`,
@@ -727,22 +711,6 @@ export function updateLowering(formProps) {
     fields.lowering_id = formProps.lowering_id;
   }
 
-  if(formProps.lowering_name) {
-    fields.lowering_name = formProps.lowering_name;
-  }
-
-  if(formProps.lowering_pilot) {
-    fields.lowering_pilot = formProps.lowering_pilot;
-  }
-
-  if(formProps.lowering_observers) {
-    fields.lowering_observers = formProps.lowering_observers;
-  }
-
-  if(formProps.lowering_description) {
-    fields.lowering_description = formProps.lowering_description;
-  }
-
   if(formProps.lowering_location) {
     fields.lowering_location = formProps.lowering_location;
   }
@@ -763,13 +731,13 @@ export function updateLowering(formProps) {
     fields.lowering_hidden = formProps.lowering_hidden;
   }
 
-  if(formProps.lowering_files) {
-    fields.lowering_files = formProps.lowering_files;
+  if(formProps.lowering_access_list) {
+    fields.lowering_access_list = formProps.lowering_access_list;
   }
 
-  // if(formProps.lowering_access_list) {
-  //   fields.lowering_access_list = formProps.lowering_access_list;
-  // }
+  if(formProps.lowering_additional_meta) {
+    fields.lowering_additional_meta = formProps.lowering_additional_meta;
+  }
 
   return function (dispatch) {
     axios.patch(`${API_ROOT_URL}/api/v1/lowerings/${formProps.id}`,

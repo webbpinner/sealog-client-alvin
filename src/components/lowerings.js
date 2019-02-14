@@ -8,7 +8,6 @@ import { LinkContainer } from 'react-router-bootstrap';
 import moment from 'moment';
 import CreateLowering from './create_lowering';
 import UpdateLowering from './update_lowering';
-// import AccessLowering from './access_lowering';
 import DeleteLoweringModal from './delete_lowering_modal';
 import ImportLoweringsModal from './import_lowerings_modal';
 import * as actions from '../actions';
@@ -24,7 +23,7 @@ class Lowerings extends Component {
 
     this.state = {
       activePage: 1,
-      // loweringAccess: false,
+      loweringAccess: false,
       loweringUpdate: false
     }
 
@@ -47,16 +46,15 @@ class Lowerings extends Component {
 
   handleLoweringUpdate(id) {
     this.props.initLowering(id);
-    // this.setState({loweringUpdate: true, loweringAccess: false});
-    this.setState({loweringUpdate: true});
+    this.setState({loweringUpdate: true, loweringAccess: false});
     window.scrollTo(0, 0);
   }
 
-  // handleLoweringAccess(id) {
-  //   this.props.initLowering(id);
-  //   this.setState({loweringUpdate: false, loweringAccess: true});
-  //   window.scrollTo(0, 0);
-  // }
+  handleLoweringAccess(id) {
+    this.props.initLowering(id);
+    this.setState({loweringUpdate: false, loweringAccess: true});
+    window.scrollTo(0, 0);
+  }
 
   handleLoweringShow(id) {
     this.props.showLowering(id);
@@ -68,8 +66,7 @@ class Lowerings extends Component {
 
   handleLoweringCreate() {
     this.props.leaveUpdateLoweringForm()
-    // this.setState({loweringUpdate: false, loweringAccess: false});
-    this.setState({loweringUpdate: false});
+    this.setState({loweringUpdate: false, loweringAccess: false});
   }
 
   handleLoweringImportModal() {
@@ -81,7 +78,7 @@ class Lowerings extends Component {
   }
 
   exportLoweringsToJSON() {
-    fileDownload(JSON.stringify(this.props.lowerings, null, 2), 'seaplay_loweringExport.json');
+    fileDownload(JSON.stringify(this.props.lowerings, null, 2), 'sealog_loweringExport.json');
   }
 
   renderAddLoweringButton() {
@@ -110,7 +107,6 @@ class Lowerings extends Component {
     const deleteTooltip = (<Tooltip id="deleteTooltip">Delete this lowering.</Tooltip>)
     const showTooltip = (<Tooltip id="showTooltip">Allow users to view this lowering.</Tooltip>)
     const hideTooltip = (<Tooltip id="hideTooltip">Hide this lowering from users.</Tooltip>)
-    // const userAccessTooltip = (<Tooltip id="accessTooltip">Manage user access to this lowering.</Tooltip>)
 
     return this.props.lowerings.map((lowering, index) => {
       if(index >= (this.state.activePage-1) * maxLoweringsPerPage && index < (this.state.activePage * maxLoweringsPerPage)) {
@@ -123,12 +119,14 @@ class Lowerings extends Component {
           hiddenLink = <Link key={`show_${lowering.id}`} to="#" onClick={ () => this.handleLoweringHide(lowering.id) }><OverlayTrigger placement="top" overlay={hideTooltip}><FontAwesomeIcon icon='eye' fixedWidth/></OverlayTrigger></Link>  
         }
 
-        // let accessLoweringLink = (this.props.roles.includes('admin'))? <Link key={`access_${lowering.id}`} to="#" onClick={ () => this.handleLoweringAccess(lowering.id) }><OverlayTrigger placement="top" overlay={userAccessTooltip}><FontAwesomeIcon icon='user' fixedWidth/></OverlayTrigger></Link>: null
+        let loweringLocation = (lowering.lowering_location)? <span>Location: {lowering.lowering_location}<br/></span> : null
+        let loweringPilot = (lowering.lowering_additional_meta.lowering_pilot)? <span>Pilot: {lowering.lowering_additional_meta.lowering_pilot}<br/></span> : null
+        let loweringObservers = (lowering.lowering_additional_meta.lowering_observers && lowering.lowering_additional_meta.lowering_observers.length > 0)? <span>Observers: {lowering.lowering_additional_meta.lowering_observers.join(", ")}<br/></span> : null
 
         return (
           <tr key={lowering.id}>
             <td>{lowering.lowering_id}</td>
-            <td>{lowering.lowering_location}<br/>Dates: {moment.utc(lowering.start_ts).format("MM-DD-YYYY HH:mm")}<FontAwesomeIcon icon='arrow-right' fixedWidth/>{moment.utc(lowering.stop_ts).format("MM-DD-YYYY HH:mm")}</td>
+            <td>{loweringLocation}Dates: {moment.utc(lowering.start_ts).format("MM-DD-YYYY HH:mm")}<FontAwesomeIcon icon='arrow-right' fixedWidth/>{moment.utc(lowering.stop_ts).format("MM-DD-YYYY HH:mm")}<br/>{loweringPilot}{loweringObservers}</td>
             <td>
               <Link key={`edit_${lowering.id}`} to="#" onClick={ () => this.handleLoweringUpdate(lowering.id) }><OverlayTrigger placement="top" overlay={editTooltip}><FontAwesomeIcon icon='pencil-alt' fixedWidth/></OverlayTrigger></Link>
               {deleteLink}
@@ -139,7 +137,6 @@ class Lowerings extends Component {
       }
     })      
   }
-              // {accessLoweringLink}
 
   renderLoweringTable() {
     if(this.props.lowerings && this.props.lowerings.length > 0){
@@ -234,8 +231,8 @@ class Lowerings extends Component {
   
       if(this.state.loweringUpdate) {
         loweringForm = <UpdateLowering handleFormSubmit={ this.props.fetchLowerings } />
-      // } else if(this.state.loweringAccess) {
-      //   loweringForm = <AccessLowering handleFormSubmit={ this.props.fetchLowerings } />
+      } else if(this.state.loweringAccess) {
+        loweringForm = <AccessLowering handleFormSubmit={ this.props.fetchLowerings } />
       } else {
         loweringForm = <CreateLowering handleFormSubmit={ this.props.fetchLowerings } />
       }
