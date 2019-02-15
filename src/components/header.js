@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Navbar, Nav, NavDropdown, NavItem, MenuItem, Image } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
-import { ROOT_PATH, HEADER_TITLE } from '../client_config';
+import { ROOT_PATH, HEADER_TITLE, TOPSIDE } from '../client_config';
 import * as actions from '../actions';
 
 class Header extends Component {
@@ -16,6 +16,10 @@ class Header extends Component {
   componentWillMount() {
     if (this.props.authenticated) {
       this.props.updateProfileState();
+
+      if( !TOPSIDE ) {
+        this.props.fetchLowerings();  
+      }
     }
   }
 
@@ -41,11 +45,27 @@ class Header extends Component {
 
   renderEventLoggingOptions() {
     if(this.props.authenticated) {
-      return (
-        <LinkContainer to={ `/cruise_menu` }>
-          <NavItem>Review Cruises/Lowerings</NavItem>
-        </LinkContainer>
-      );
+      if( TOPSIDE ) {
+        return (
+          <LinkContainer to={ `/cruise_menu` }>
+            <NavItem>Review Cruises/Lowerings</NavItem>
+          </LinkContainer>
+        );
+      } else {
+        if(this.props.lowerings.length > 0) {
+          return (
+            <LinkContainer to={ `/lowering_replay/${this.props.lowerings[0].id}` }>
+              <NavItem>Review Current Lowering</NavItem>
+            </LinkContainer>
+          );
+        } else  {
+          return (
+            <LinkContainer to={ `/lowerings` }>
+              <NavItem>Create New Lowering</NavItem>
+            </LinkContainer>
+          );
+        }
+      }
     }
   }
 
@@ -60,7 +80,7 @@ class Header extends Component {
   }
 
   renderEventTemplateOptions() {
-    if(this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager') || this.props.roles.includes('event_manager')) {
+    if(!TOPSIDE && (this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager') || this.props.roles.includes('event_manager'))) {
       return (
         <LinkContainer to={ `/event_templates` }>
           <NavItem>Event Templates</NavItem>
@@ -80,7 +100,7 @@ class Header extends Component {
   }
 
   renderCruiseOptions() {
-    if(this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager')) {
+    if(TOPSIDE && (this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager'))) {
       return (
         <LinkContainer to={ `/cruises` }>
           <NavItem>Cruises</NavItem>
@@ -100,7 +120,7 @@ class Header extends Component {
   }
 
   renderToggleASNAP() {
-    if(this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager') || this.props.roles.includes('event_manager') || this.props.roles.includes('event_logger')) {
+    if(!TOPSIDE && (this.props.roles.includes('admin') || this.props.roles.includes('cruise_manager') || this.props.roles.includes('event_manager') || this.props.roles.includes('event_logger'))) {
       return (
         <MenuItem onClick={ () => this.handleASNAPToggle() }>Toggle ASNAP</MenuItem>
       );
@@ -113,15 +133,15 @@ class Header extends Component {
         <NavDropdown eventKey={3} title={'System Management'} id="basic-nav-dropdown">
           {this.renderCruiseOptions()}
           {this.renderEventManagementOptions()}
+          {this.renderEventTemplateOptions()}
           {this.renderLoweringOptions()}
           {this.renderTaskOptions()}
           {this.renderUserOptions()}
+          {this.renderToggleASNAP()}
         </NavDropdown>
       );
     }
   }
-          // {this.renderEventTemplateOptions()}
-          // {this.renderToggleASNAP()}
 
   renderUserDropdown() {
     if(this.props.authenticated){
@@ -130,7 +150,10 @@ class Header extends Component {
         <LinkContainer to={ `/profile` }>
           <MenuItem key="profile" eventKey={3.1} >User Profile</MenuItem>
         </LinkContainer>
-        {(this.props.fullname != 'Guest')? (<MenuItem key="switch2Guest" eventKey={3.1} onClick={ () => this.handleSwitchToGuest() } >Switch to Guest</MenuItem>) : null }
+        {(this.props.fullname != 'Guest' && TOPSIDE)? (<MenuItem key="switch2Guest" eventKey={3.1} onClick={ () => this.handleSwitchToGuest() } >Switch to Guest</MenuItem>) : null }
+        {(this.props.fullname != 'Pilot' && !TOPSIDE)? (<MenuItem key="switch2Pilot" eventKey={3.1} onClick={ () => this.handleSwitchToPilot() } >Switch to Pilot</MenuItem>) : null }
+        {(this.props.fullname != 'Starboard Observer' && !TOPSIDE)? (<MenuItem key="switch2StbdObs" eventKey={3.2} onClick={ () => this.handleSwitchToStbdObs() } >Switch to Stbd Obs</MenuItem>) : null }
+        {(this.props.fullname != 'Port Observer' && !TOPSIDE)? (<MenuItem key="switch2PortObs" eventKey={3.3} onClick={ () => this.handleSwitchToPortObs() } >Switch to Port Obs</MenuItem>) : null }
         <MenuItem key="logout" eventKey={3.3} onClick={ () => this.handleLogout() } >Log Out</MenuItem>
       </NavDropdown>
       );
@@ -145,17 +168,17 @@ class Header extends Component {
     this.props.switch2Guest();
   }
 
-  // handleSwitchToPilot() {
-  //   this.props.switch2Pilot();
-  // }
+  handleSwitchToPilot() {
+    this.props.switch2Pilot();
+  }
 
-  // handleSwitchToStbdObs() {
-  //   this.props.switch2StbdObs();
-  // }
+  handleSwitchToStbdObs() {
+    this.props.switch2StbdObs();
+  }
 
-  // handleSwitchToPortObs() {
-  //   this.props.switch2PortObs();
-  // }
+  handleSwitchToPortObs() {
+    this.props.switch2PortObs();
+  }
 
   render () {
     return (
@@ -179,14 +202,22 @@ class Header extends Component {
 }
 
 function mapStateToProps(state){
-  // let asnapStatus = (state.custom_var)? state.custom_var.custom_vars.find(custom_var => custom_var.custom_var_name == "asnapStatus") : null
+  if( TOPSIDE ) {
+    return {
+      authenticated: state.auth.authenticated,
+      fullname: state.user.profile.fullname,
+      roles: state.user.profile.roles,
+    }
+  } else {
 
-  return {
-    authenticated: state.auth.authenticated,
-    fullname: state.user.profile.fullname,
-    roles: state.user.profile.roles,
-    // asnapStatus: (state.custom_var)? state.custom_var.custom_vars.find(custom_var => custom_var.custom_var_name == "asnapStatus") : null
-  };
+    return {
+      authenticated: state.auth.authenticated,
+      fullname: state.user.profile.fullname,
+      roles: state.user.profile.roles,
+      lowerings: state.lowering.lowerings,
+      asnapStatus: (state.custom_var)? state.custom_var.custom_vars.find(custom_var => custom_var.custom_var_name == "asnapStatus") : null
+    };
+  }
 }
 
 export default connect(mapStateToProps, actions)(Header);

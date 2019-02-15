@@ -111,7 +111,7 @@ class EventShowDetailsModal extends Component {
               {
                 tmpData.map((camera) => {
                   return (
-                    <Col key={camera.source} xs={12} sm={6} md={3} lg={3}>
+                    <Col key={camera.source} xs={12} sm={6} md={4} lg={4}>
                       {this.renderImage(camera.source, camera.filepath)}
                     </Col>
                   )

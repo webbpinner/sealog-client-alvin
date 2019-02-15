@@ -10,6 +10,7 @@ import CreateLowering from './create_lowering';
 import UpdateLowering from './update_lowering';
 import DeleteLoweringModal from './delete_lowering_modal';
 import ImportLoweringsModal from './import_lowerings_modal';
+import { TOPSIDE } from '../client_config';
 import * as actions from '../actions';
 
 let fileDownload = require('js-file-download');
@@ -82,7 +83,7 @@ class Lowerings extends Component {
   }
 
   renderAddLoweringButton() {
-    if (!this.props.showform && this.props.roles && this.props.roles.includes('admin')) {
+    if (TOPSIDE && !this.props.showform && this.props.roles && this.props.roles.includes('admin')) {
       return (
         <div className="pull-right">
           <Button bsStyle="primary" bsSize="small" type="button" onClick={ () => this.handleLoweringCreate()}>Add Lowering</Button>
@@ -92,7 +93,7 @@ class Lowerings extends Component {
   }
 
   renderImportLoweringsButton() {
-    if(this.props.roles.includes("admin")) {
+    if(TOPSIDE && this.props.roles.includes("admin")) {
       return (
         <div className="pull-right">
           <Button bsStyle="primary" bsSize="small" type="button" onClick={ () => this.handleLoweringImportModal()}>Import From File</Button>
@@ -229,12 +230,21 @@ class Lowerings extends Component {
 
       let loweringForm = null;
   
-      if(this.state.loweringUpdate) {
-        loweringForm = <UpdateLowering handleFormSubmit={ this.props.fetchLowerings } />
-      } else if(this.state.loweringAccess) {
-        loweringForm = <AccessLowering handleFormSubmit={ this.props.fetchLowerings } />
+      if( TOPSIDE ) {
+        if(this.state.loweringUpdate) {
+          loweringForm = <UpdateLowering handleFormSubmit={ this.props.fetchLowerings } />
+        } else if(this.state.loweringAccess) {
+          loweringForm = <AccessLowering handleFormSubmit={ this.props.fetchLowerings } />
+        } else {
+          loweringForm = <CreateLowering handleFormSubmit={ this.props.fetchLowerings } />
+        }
       } else {
-        loweringForm = <CreateLowering handleFormSubmit={ this.props.fetchLowerings } />
+        if( this.props.lowerings.length > 0) {
+          this.props.initLowering(this.props.lowerings[0].id);
+          loweringForm = <UpdateLowering handleFormSubmit={ this.props.fetchLowerings } />  
+        } else {
+          loweringForm = <CreateLowering handleFormSubmit={ this.props.fetchLowerings } /> 
+        }
       }
 
       return (
@@ -270,7 +280,6 @@ class Lowerings extends Component {
 function mapStateToProps(state) {
   return {
     lowerings: state.lowering.lowerings,
-    loweringid: state.lowering.lowering.id,
     roles: state.user.profile.roles
   }
 }

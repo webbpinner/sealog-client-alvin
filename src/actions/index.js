@@ -447,10 +447,10 @@ export function createUser({username, fullname, password = '', email, roles, sys
   }
 }
 
-export function createCruise({cruise_id, start_ts, stop_ts, cruise_location = '', cruise_pi, cruise_tags = [], cruise_hidden = false, cruise_access_list = [], cruise_additional_meta = {} }) {
+export function createCruise({cruise_id, start_ts, stop_ts, cruise_location = '', cruise_pi, cruise_tags = [], cruise_hidden = false, cruise_additional_meta = {} }) {
   return function (dispatch) {
     axios.post(`${API_ROOT_URL}/api/v1/cruises`,
-    {cruise_id, start_ts, stop_ts, cruise_location, cruise_pi, cruise_tags, cruise_hidden, cruise_access_list, cruise_additional_meta},
+    {cruise_id, start_ts, stop_ts, cruise_location, cruise_pi, cruise_tags, cruise_hidden, cruise_additional_meta},
     {
       headers: {
         authorization: cookies.get('token'),
@@ -469,10 +469,10 @@ export function createCruise({cruise_id, start_ts, stop_ts, cruise_location = ''
   }
 }
 
-export function createLowering({lowering_id, start_ts, stop_ts, lowering_location = '', lowering_tags = [], lowering_hidden = false, lowering_access_list = [], lowering_additional_meta = {} }) {
+export function createLowering({lowering_id, start_ts, stop_ts, lowering_location = '', lowering_tags = [], lowering_hidden = false, lowering_additional_meta = {} }) {
   return function (dispatch) {
     axios.post(`${API_ROOT_URL}/api/v1/lowerings`,
-    {lowering_id, start_ts, stop_ts, lowering_location, lowering_tags, lowering_hidden, lowering_access_list, lowering_additional_meta},
+    {lowering_id, start_ts, stop_ts, lowering_location, lowering_tags, lowering_hidden, lowering_additional_meta},
     {
       headers: {
         authorization: cookies.get('token'),
@@ -971,6 +971,24 @@ export function logout() {
 export function switch2Guest() {
   return function(dispatch) {
     dispatch(login( { username:"guest", password: "" } ) );
+  }
+}
+
+export function switch2Pilot() {
+  return function(dispatch) {
+    dispatch(login( { username:"pilot", password: "" } ) );
+  }
+}
+
+export function switch2StbdObs() {
+  return function(dispatch) {
+    dispatch(login( { username:"stbd_obs", password: "" } ) );
+  }
+}
+
+export function switch2PortObs() {
+  return function(dispatch) {
+    dispatch(login( { username:"port_obs", password: "" } ) );
   }
 }
 

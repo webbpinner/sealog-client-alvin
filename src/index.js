@@ -48,6 +48,8 @@ import { faStepForward } from '@fortawesome/free-solid-svg-icons/faStepForward';
 import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser';
 
+import { TOPSIDE } from './client_config'
+
 library.add(faArrowLeft,faArrowRight,faBackward,faComment,faCompress,faDownload,faExpand,faEye,faEyeSlash,faForward,faLink,faPause,faPencilAlt,faPlay,faPlus,faStepBackward,faStepForward,faTrash,faUser);
 
 require('typeface-roboto');
@@ -63,12 +65,14 @@ if (token) {
   store.dispatch({ type: AUTH_USER });
 }
 
+const mainComponent = ( TOPSIDE )? CruiseMenu : EventLogging
+
 ReactDOM.render(
   <Provider store={store}>
       <ConnectedRouter history={history}>
           <div>
             <Header />
-            <Route path={ `/` } exact={true} component={RequireAuth(CruiseMenu)}/>
+            <Route path={ `/` } exact={true} component={RequireAuth(mainComponent)}/>
             <Route path={ `/github`} exact={true} component={() => window.location = 'https://github.com/webbpinner/sealog-client-alvin-topside'}/>
             <Route path={ `/license`} exact={true} component={() => window.location = 'http://www.gnu.org/licenses/gpl-3.0.html'}/>
             <Route path={ `/profile` } exact={true} component={RequireAuth(Profile)} />

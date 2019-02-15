@@ -7,7 +7,7 @@ import { Grid, Row, Col, FormGroup, Panel, Button, Alert, Image } from 'react-bo
 // import ReCAPTCHA from "react-google-recaptcha";
 import * as actions from '../../actions';
 // import { ROOT_PATH, RECAPTCHA_SITE_KEY } from '../../client_config';
-import { ROOT_PATH } from '../../client_config';
+import { ROOT_PATH, TOPSIDE } from '../../client_config';
 
 class Login extends Component {
  
@@ -55,6 +55,13 @@ render() {
     const { handleSubmit, pristine, reset, submitting, valid } = this.props;
     const loginPanelHeader = (<h4 className="form-signin-heading">Please Sign In</h4>);
 
+    const loginShortcuts = ( TOPSIDE )? <Button bsStyle="success" onClick={() => this.props.switch2Guest()} block>Login as Guest</Button> : [
+      <Button key="pilot" bsStyle="success" onClick={() => this.props.switch2Pilot()} block>Login as Pilot</Button>,
+      <Button key="stbd_obs" bsStyle="success" onClick={() => this.props.switch2StbdObs()} block>Login as Starboard Observer</Button>,
+      <Button key="port_obs" bsStyle="success" onClick={() => this.props.switch2PortObs()} block>Login as Port Observer</Button>
+    ]
+
+
     return (
       <Row>
         <Col sm={5} md={3} mdOffset={2} lg={2} lgOffset={3}>
@@ -87,11 +94,11 @@ render() {
                 </div>
               </form>
               <br/>
-              <Button bsStyle="success" onClick={() => this.props.switch2Guest()} block>Login as Guest</Button>
+              {loginShortcuts}
               <br/>
               <div>
                 <span>
-                  <Link to={ `/forgotPassword` }>{<FontAwesomeIcon icon="arrow-left"/>} Forgot Password?</Link>
+                  { (TOPSIDE)?<Link to={ `/forgotPassword` }>{<FontAwesomeIcon icon="arrow-left"/>} Forgot Password?</Link> : null }
                 </span>
                 <span className="pull-right">
                   <Link to={ `/register` }>Register New User {<FontAwesomeIcon icon="arrow-right"/>}</Link>

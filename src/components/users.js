@@ -10,8 +10,9 @@ import NonSystemUsersWipeModal from './non_system_users_wipe_modal';
 import ImportUsersModal from './import_users_modal';
 import DeleteUserModal from './delete_user_modal';
 import * as actions from '../actions';
+import { TOPSIDE } from '../client_config'
 
-const disabledAccounts = ['admin', 'guest', 'pi']
+const disabledAccounts = ( TOPSIDE )? ['alvin', 'guest', 'pi'] : ['alvin', 'pilot', 'stbd_obs', 'port_obs']
 
 let fileDownload = require('js-file-download');
 
