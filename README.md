@@ -3,8 +3,8 @@ React-Redux based front-end to the Sealog eventlog server customized to support 
 
 For installation instruction please look at [INSTALL.md](./INSTALL.md)
 
-[Live Demo for in-sub client](https://sealog-alvin.oceandatarat.org)
-[Live Demo for in-lab client](https://sealog-alvin-topside.oceandatarat.org)
+- [Live Demo for in-sub client](https://sealog-alvin.oceandatarat.org)
+- [Live Demo for in-lab client](https://sealog-alvin-topside.oceandatarat.org)
 
 - admin account for demo: alvin:atlantis
 - guest account for demo: guest:<no password>
